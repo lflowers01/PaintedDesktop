@@ -97,14 +97,18 @@ class PaintedDesktop:
         """Create system tray icon."""
         try:
             # Create a simple icon image
-            icon_image = Image.new('RGB', (64, 64), color='blue')
+            assets_dir = Path(__file__).parent / "assets"
+            icon_path = assets_dir / "tray_icon.png"
+            if icon_path.exists():
+                icon_image = Image.open(icon_path)
+            else:
+                icon_image = Image.new('RGBA', (64, 64), color=(70, 130, 180, 255))
             
             menu = pystray.Menu(
                 pystray.MenuItem("What's on my desktop?", self.show_current_info),
                 pystray.MenuItem("Change now", self.change_wallpaper_now),
                 pystray.MenuItem("History", self.show_history),
                 pystray.Menu.SEPARATOR,
-                pystray.MenuItem("Change time", self.show_change_time_menu),
                 pystray.MenuItem("Settings", self.show_settings),
                 pystray.Menu.SEPARATOR,
                 pystray.MenuItem("Exit", self.exit_app),
@@ -121,28 +125,8 @@ class PaintedDesktop:
         except Exception as e:
             self.logger.error(f"Error creating tray icon: {e}")
     
-    def show_change_time_menu(self, icon, item):
-        """Show submenu for changing time."""
-        times = []
-        for hour in range(24):
-            for minute in [0, 30]:
-                time_str = f"{hour:02d}:{minute:02d}"
-                times.append(
-                    pystray.MenuItem(
-                        time_str,
-                        lambda h=hour, m=minute: self.set_change_time(h, m)
-                    )
-                )
-        
-        # For now, just open a simple time picker
-        self.show_settings(icon, item)
-    
-    def set_change_time(self, hour: int, minute: int):
-        """Set the daily change time."""
-        self.settings_manager.set_change_time(hour, minute)
-        self.logger.info(f"Change time set to {hour:02d}:{minute:02d}")
-        # Reschedule the job
-        self.schedule_daily_wallpaper()
+
+
     
     def show_current_info(self, icon=None, item=None):
         """Show current wallpaper info popup."""
@@ -172,9 +156,8 @@ class PaintedDesktop:
         self.schedule_daily_wallpaper()
     
     def change_wallpaper_now(self, icon=None, item=None):
-        """Immediately fetch and set new wallpaper."""
         self.logger.info("Manual wallpaper change requested")
-        self._fetch_and_set_wallpaper()
+        threading.Thread(target=self._fetch_and_set_wallpaper, kwargs={'force': True}, daemon=True).start()
     
     def _get_painting_metadata(self, painting: dict, source: str) -> dict:
         """Extract metadata from painting dict."""
@@ -196,13 +179,13 @@ class PaintedDesktop:
             }
         return {}
     
-    def _fetch_and_set_wallpaper(self) -> bool:
+    def _fetch_and_set_wallpaper(self, force: bool = False) -> bool:
         """Fetch a new painting and set it as wallpaper."""
         try:
             # Check if we already set a wallpaper today
             today = datetime.now().strftime('%Y-%m-%d')
             last_date = self.settings_manager.get('last_wallpaper_date')
-            if last_date == today:
+            if not force and last_date == today:
                 self.logger.info("Wallpaper already set today, skipping")
                 return False
             
