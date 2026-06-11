@@ -6,7 +6,7 @@
 
 Automatically set your Windows desktop wallpaper to a different high-resolution oil painting landscape every day.
 
-![Screenshot Placeholder](https://via.placeholder.com/800x450?text=PaintedDesktop+Screenshot)
+![Screenshot Placeholder](/screenshot.png)
 
 ## Features
 
