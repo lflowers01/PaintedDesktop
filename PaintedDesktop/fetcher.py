@@ -128,11 +128,8 @@ class ARTICFetcher:
 class RijksmuseumFetcher:
     """Rijksmuseum API fetcher."""
     
-    BASE_URL = "https://www.rijksmuseum.nl/api/en/collection"
+    BASE_URL = "https://data.rijksmuseum.nl/search/collection"
     
-    def __init__(self, api_key: str):
-        """Initialize with API key."""
-        self.api_key = api_key
     
     def search(self, subject: str, limit: int = 100) -> List[Dict]:
         """
@@ -145,12 +142,9 @@ class RijksmuseumFetcher:
         Returns:
             List of painting dicts
         """
-        if not self.api_key:
-            logger.warning("Rijksmuseum API key not set")
-            return []
+    
         
         params = {
-            'key': self.api_key,
             'format': 'json',
             'imgonly': True,
             'ps': limit,

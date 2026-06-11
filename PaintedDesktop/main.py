@@ -244,9 +244,9 @@ class PaintedDesktop:
                 attempts += 1
             
             # Try Rijksmuseum if enabled
-            api_key = self.settings_manager.get('rijksmuseum_api_key')
+         
             if api_key:
-                rij_fetcher = RijksmuseumFetcher(api_key)
+                rij_fetcher = RijksmuseumFetcher()
                 for style in art_styles:
                     paintings = rij_fetcher.search(style, limit=50)
                     for painting in paintings:

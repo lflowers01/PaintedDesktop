@@ -15,7 +15,6 @@ class SettingsManager:
     DEFAULT_SETTINGS = {
         "change_time": "08:00",
         "min_resolution": {"width": 1920, "height": 1080},
-        "rijksmuseum_api_key": "",
         "art_styles": ["landscape", "seascape"],
         "launch_at_startup": True,
         "last_wallpaper_date": None,
@@ -124,15 +123,10 @@ class SettingsWindow:
         ttk.Label(res_frame, text="Height:").pack(side=tk.LEFT)
         ttk.Entry(res_frame, textvariable=height_var, width=8).pack(side=tk.LEFT, padx=5)
         
-        # Rijksmuseum API key
-        ttk.Label(main_frame, text="Rijksmuseum API Key (optional):").grid(row=2, column=0, sticky=tk.W, pady=5)
-        api_key_var = tk.StringVar(value=self.settings_manager.get("rijksmuseum_api_key", ""))
-        ttk.Entry(main_frame, textvariable=api_key_var, width=40).grid(row=2, column=1, sticky=(tk.W, tk.E), padx=10)
-        
         # Art styles
-        ttk.Label(main_frame, text="Art Styles:").grid(row=3, column=0, sticky=tk.W, pady=5)
+        ttk.Label(main_frame, text="Art Styles:").grid(row=2, column=0, sticky=tk.W, pady=5)
         styles_frame = ttk.Frame(main_frame)
-        styles_frame.grid(row=3, column=1, sticky=tk.W, padx=10)
+        styles_frame.grid(row=2, column=1, sticky=tk.W, padx=10)
         
         current_styles = set(self.settings_manager.get("art_styles", ["landscape", "seascape"]))
         landscape_var = tk.BooleanVar(value="landscape" in current_styles)
@@ -145,11 +139,11 @@ class SettingsWindow:
         
         # Launch at startup
         startup_var = tk.BooleanVar(value=self.settings_manager.get("launch_at_startup", True))
-        ttk.Checkbutton(main_frame, text="Launch at startup", variable=startup_var).grid(row=4, column=0, columnspan=2, sticky=tk.W, pady=10)
+        ttk.Checkbutton(main_frame, text="Launch at startup", variable=startup_var).grid(row=3, column=0, columnspan=2, sticky=tk.W, pady=10)
         
         # Buttons
         button_frame = ttk.Frame(main_frame)
-        button_frame.grid(row=5, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=20)
+        button_frame.grid(row=4, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=20)
         
         def save_settings():
             """Save all settings."""
@@ -171,9 +165,7 @@ class SettingsWindow:
             except ValueError:
                 pass
             
-            # Save other settings
-            self.settings_manager.set("rijksmuseum_api_key", api_key_var.get())
-            
+            # Save other settings            
             styles = []
             if landscape_var.get():
                 styles.append("landscape")

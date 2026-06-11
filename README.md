@@ -16,7 +16,7 @@ Automatically set your Windows desktop wallpaper to a different high-resolution 
 - **System Tray Controls** — Right-click menu for quick access to all functions
 - **Current Wallpaper Info** — View the title, artist, year, and source of your current wallpaper with one click
 - **Wallpaper History** — Browse past wallpapers with full metadata; click any to view details
-- **Multiple Art Sources** — Pulls from Art Institute of Chicago (primary), Rijksmuseum (optional, requires free API key), and Wikimedia Commons (fallback)
+- **Multiple Art Sources** — Pulls from Art Institute of Chicago and Rijksmuseum automatically
 - **Smart Caching** — Automatically caches images and cleans up old ones (keeps last 30)
 - **No Overlays** — Clean images with no watermarks or text overlays
 - **Customizable** — Adjust change time, resolution thresholds, and art style filters via settings window
@@ -45,27 +45,22 @@ Right-click the tray icon to access:
 - **Settings** — Open the full settings window to customize:
   - Change time (HH:MM format)
   - Minimum image resolution (auto-detected from your monitor)
-  - Rijksmuseum API key (optional, improves variety)
   - Art style filters (landscape, seascape, vedutta)
   - Launch at startup toggle
 - **Exit** — Close the application
 
-## Getting a Rijksmuseum API Key (Optional)
+## Art Sources
 
-The Rijksmuseum API provides access to even more high-resolution paintings. To enable it:
+PaintedDesktop pulls from two free museum APIs automatically — no keys or accounts needed:
 
-1. Visit [Rijksmuseum API](https://data.rijksmuseum.nl/user-generated-content/api/)
-2. Sign up for a free account
-3. Generate an API key
-4. Copy the key and paste it into the Settings window under "Rijksmuseum API Key"
-
-Without this key, the app will use the Art Institute of Chicago API (which has excellent coverage).
+- **Art Institute of Chicago** — primary source, excellent high-resolution coverage
+- **Rijksmuseum** — secondary source, used automatically as a fallback
 
 ## Where Data Lives
 
 All app data is stored in `%APPDATA%\PaintedDesktop\`:
 
-- **`settings.json`** — Your preferences (change time, resolution, API keys, etc.)
+- **`settings.json`** — Your preferences (change time, resolution, etc.)
 - **`history.json`** — Metadata for all wallpapers that have been set (title, artist, year, source, date set)
 - **`cache/`** — Local copies of the last 30 images (auto-managed; they're deleted as new ones are fetched)
 - **`app.log`** — Application debug log (rotates when it reaches 1 MB)
@@ -77,7 +72,7 @@ If you want to build the app yourself:
 ### Prerequisites
 
 - Python 3.10 or later
-- Windows (for wallpaper API support)
+- Windows 
 - Inno Setup (for building the installer, optional)
 
 ### Steps
