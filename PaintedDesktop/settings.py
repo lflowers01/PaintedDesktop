@@ -7,7 +7,7 @@ from datetime import datetime, time
 import tkinter as tk
 from tkinter import ttk
 import threading
-from info_popup import get_root
+
 
 class SettingsManager:
     """Manages settings.json read/write operations."""
@@ -91,8 +91,7 @@ class SettingsWindow:
             self.window.lift()
             return
         
-        
-        self.window = tk.Toplevel(get_root())
+        self.window = tk.Tk()
         self.window.title("PaintedDesktop - Settings")
         self.window.geometry("500x400")
         self.window.resizable(False, False)
@@ -185,7 +184,7 @@ class SettingsWindow:
         ttk.Button(button_frame, text="Save", command=save_settings).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Cancel", command=self.window.destroy).pack(side=tk.LEFT, padx=5)
         
-        self.window.wait_window()
+        self.window.mainloop()
     
     def show_threaded(self):
         """Show settings window in a separate thread."""
