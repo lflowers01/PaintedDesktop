@@ -21,8 +21,6 @@ AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 LicenseFile=LICENSE
-; Uncomment the following line to run the post install step when Run checkbox is checked.
-PostInstallRunCheck=idYes
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
