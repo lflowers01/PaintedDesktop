@@ -53,30 +53,3 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 ; Register for startup if task is selected
 Root: HKA; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "{#MyAppName}"; ValueData: "{app}\{#MyAppExeName}"; Tasks: startup; Flags: uninsdeletevalue
 
-[Code]
-// Check if running on Windows
-function InitializeSetup(): Boolean;
-begin
-  if not IsWin32Compatible then
-  begin
-    MsgBox('This application requires Windows XP or later.', mbInformation, MB_OK);
-    Result := False;
-  end
-  else
-    Result := True;
-end;
-
-// Ensure the app directory is created before installation
-procedure InitializeWizard();
-begin
-  // Nothing special needed here
-end;
-
-// After installation, optionally register for startup
-procedure CurStepChanged(CurStep: TSetupStep);
-begin
-  if CurStep = ssPostInstall then
-  begin
-    // The registry entry is handled by the [Registry] section
-  end;
-end;
