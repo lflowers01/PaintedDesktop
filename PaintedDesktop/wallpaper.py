@@ -37,15 +37,23 @@ def set_wallpaper(image_path: str) -> bool:
 
         # Set wallpaper style to Fill (10) and TileWallpaper to 0
         try:
-            registry_path = r"Control Panel\Desktop"
             registry = ConnectRegistry(None, HKEY_CURRENT_USER)
-            key = OpenKey(registry, registry_path, 0, 0x20000 | 2)  # Read and Write
-            SetValueEx(key, "WallpaperStyle", 0, REG_SZ, "10")  # 10 = Fill
-            SetValueEx(key, "TileWallpaper", 0, REG_SZ, "0")
+            
+            # Set wallpaper style to Fit (6) and ensure it is not tiled
+            desktop_path = r"Control Panel\Desktop"
+            desktop_key = OpenKey(registry, desktop_path, 0, 0x20000 | 2)  # Read and Write
+            SetValueEx(desktop_key, "WallpaperStyle", 0, REG_SZ, "6")
+            SetValueEx(desktop_key, "TileWallpaper", 0, REG_SZ, "0")
             
             # Enable Windows to automatically pick an accent color from the background
-            SetValueEx(key, "AutoColorization", 0, REG_DWORD, 1)
-            key.Close()
+            SetValueEx(desktop_key, "AutoColorization", 0, REG_DWORD, 1)
+            desktop_key.Close()
+
+            # Set the desktop background color to black (0 0 0) to create black bars
+            colors_path = r"Control Panel\Colors"
+            colors_key = OpenKey(registry, colors_path, 0, 0x20000 | 2)
+            SetValueEx(colors_key, "Background", 0, REG_SZ, "0 0 0")
+            colors_key.Close()
 
             
         except Exception as e:
