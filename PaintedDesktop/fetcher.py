@@ -145,20 +145,22 @@ class RijksmuseumFetcher:
     
         
         params = {
-            'format': 'json',
-            'imgonly': True,
-            'ps': limit,
-            'p': 1,
+        'q': f'oil paint {subject}',
+        'type': 'painting',
+        'imgonly': 'True',
+        'ps': limit,
+        'p': 1,
+        'format': 'json',
         }
-        
-        # Add filters based on subject
-        if subject == 'landscape':
-            params['type'] = 'painting'
-            params['material'] = 'oil paint'
-            params['f.type.en.norm'] = 'landscape'
-        elif subject == 'seascape':
-            params['type'] = 'painting'
-            params['f.type.en.norm'] = 'seascape'
+            
+        # # Add filters based on subject
+        # if subject == 'landscape':
+        #     params['type'] = 'painting'
+        #     params['material'] = 'oil paint'
+        #     params['f.type.en.norm'] = 'landscape'
+        # elif subject == 'seascape':
+        #     params['type'] = 'painting'
+        #     params['f.type.en.norm'] = 'seascape'
         
         try:
             response = requests.get(

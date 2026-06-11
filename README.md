@@ -4,171 +4,110 @@
 [![Latest Release](https://img.shields.io/github/v/release/lflowers01/PaintedDesktop?label=latest&sort=semver)](https://github.com/lflowers01/PaintedDesktop/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Automatically set your Windows desktop wallpaper to a different high-resolution oil painting landscape each day.
+Automatically set your Windows desktop wallpaper to a different high-resolution oil painting landscape every day.
 
-![Screenshot Placeholder](https://via.placeholder.com/800x600?text=Daily+Art+Wallpaper+Screenshot)
+![Screenshot Placeholder](https://via.placeholder.com/800x450?text=PaintedDesktop+Screenshot)
 
 ## Features
 
-- **Automatic Daily Wallpaper Changes** — New oil painting landscape every day at a configurable time (default: 8:00 AM)
-- **Resolution-Gated** — Only uses images equal to or larger than your monitor resolution
-- **Curated Landscapes** — Strictly filters to oil painting landscapes, seascapes, and veduttas (architectural landscapes)
-- **System Tray Controls** — Right-click menu for quick access to all functions
-- **Current Wallpaper Info** — View the title, artist, year, and source of your current wallpaper with one click
-- **Wallpaper History** — Browse past wallpapers with full metadata; click any to view details
-- **Multiple Art Sources** — Pulls from Art Institute of Chicago and Rijksmuseum automatically
-- **Smart Caching** — Automatically caches images and cleans up old ones (keeps last 30)
-- **No Overlays** — Clean images with no watermarks or text overlays
-- **Customizable** — Adjust change time, resolution thresholds, and art style filters via settings window
+- **Daily wallpaper rotation** — a new oil painting landscape every day at a time you choose
+- **Resolution gated** — only fetches images at or above your monitor's native resolution
+- **Oil painting landscapes only** — strictly filtered to landscapes, seascapes, and veduttas in oil
+- **No accounts or API keys** — pulls from Rijksmuseum and Art Institute of Chicago for free
+- **System tray controls** — everything accessible from a right-click menu, no persistent window
+- **What's on my desktop?** — one click to see the painting title, artist, year, and source
+- **Wallpaper history** — browse every painting that's been set, with full metadata
+- **Clean wallpapers** — no overlaid text, watermarks, or UI chrome on the image itself
+- **Smart caching** — keeps the last 30 images locally, cleans up older ones automatically
 
 ## Installation
 
-1. Download the latest installer from [Releases](https://github.com/lflowers01/PaintedDesktop/releases)
-2. Run `PaintedDesktopSetup.exe`
-3. Follow the installation wizard
-4. *Optional*: Check "Launch at startup" during installation to run the app automatically when Windows starts
+1. Download the latest `PaintedDesktopSetup.exe` from [Releases](https://github.com/lflowers01/PaintedDesktop/releases)
+2. Run the installer and follow the wizard
+3. PaintedDesktop will start automatically and sit in your system tray
 
-**No Python installation required** — the installer includes everything needed.
+No Python installation required — everything is bundled.
 
 ## Usage
 
-Once installed, the app runs as a system tray icon (usually in the bottom-right corner of your taskbar).
+PaintedDesktop runs as a system tray icon in the bottom-right corner of your taskbar. Right-click it to access all controls:
 
-### Tray Icon Menu
+- **What's on my desktop?** — shows the current painting's title, artist, year, source institution, and a link to view it on the museum's website
+- **Change now** — immediately fetches and sets a new painting, bypassing the daily lock
+- **History** — opens a window listing every wallpaper that's been set, most recent first; double-click any entry for full details
+- **Settings** — opens the settings window
+- **Exit** — closes the app
 
-Right-click the tray icon to access:
+## Settings
 
-- **What's on my desktop?** — Opens a popup showing the current wallpaper's title, artist, year, source institution, and a link to view it online
-- **Change now** — Immediately fetches and sets a new painting (ignores the daily lock)
-- **History** — Opens a window showing all previously set wallpapers (most recent first); double-click any entry for full details
-- **Change time** — Opens the settings window to adjust when the daily swap occurs
-- **Settings** — Open the full settings window to customize:
-  - Change time (HH:MM format)
-  - Minimum image resolution (auto-detected from your monitor)
-  - Art style filters (landscape, seascape, vedutta)
-  - Launch at startup toggle
-- **Exit** — Close the application
+| Setting | Default | Description |
+|---|---|---|
+| Change time | 08:00 | Time of day the wallpaper rotates |
+| Min resolution | auto-detected | Minimum image size; defaults to your monitor resolution |
+| Art styles | Landscape, Seascape | Which genres to include |
+| Launch at startup | On | Whether to start with Windows |
 
 ## Art Sources
 
-PaintedDesktop pulls from two free museum APIs automatically — no keys or accounts needed:
+PaintedDesktop pulls from two free museum APIs with no accounts or keys needed:
 
-- **Art Institute of Chicago** — primary source, excellent high-resolution coverage
-- **Rijksmuseum** — secondary source, used automatically as a fallback
+- **Rijksmuseum** (primary) — 700,000+ works, heavy in Dutch Golden Age oil painting landscapes. Very high resolution scans.
+- **Art Institute of Chicago** (fallback) — excellent general collection with strong landscape coverage and flexible resolution requests via IIIF.
 
 ## Where Data Lives
 
 All app data is stored in `%APPDATA%\PaintedDesktop\`:
 
-- **`settings.json`** — Your preferences (change time, resolution, etc.)
-- **`history.json`** — Metadata for all wallpapers that have been set (title, artist, year, source, date set)
-- **`cache/`** — Local copies of the last 30 images (auto-managed; they're deleted as new ones are fetched)
-- **`app.log`** — Application debug log (rotates when it reaches 1 MB)
+| File/Folder | Contents |
+|---|---|
+| `settings.json` | Your preferences |
+| `history.json` | Metadata for every wallpaper that's been set |
+| `cache/` | Local copies of the last 30 images |
+| `app.log` | Debug log, rotates at 1 MB |
+
+To open this folder: press `Win + R`, type `%APPDATA%\PaintedDesktop`, hit Enter.
 
 ## Building from Source
 
-If you want to build the app yourself:
-
 ### Prerequisites
 
-- Python 3.10 or later
-- Windows 
-- Inno Setup (for building the installer, optional)
+- Python 3.10+
+- Windows (wallpaper API is Windows-only)
+- Inno Setup (only needed to build the installer)
 
-### Steps
+### Run from source
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/lflowers01/PaintedDesktop.git
-   cd PaintedDesktop
-   ```
-
-2. Create a virtual environment and activate it:
-   ```bash
-   python -m venv venv
-   venv\Scripts\activate
-   ```
-
-3. Install dependencies:
-   ```bash
-   pip install -r PaintedDesktop/requirements.txt
-   ```
-
-4. Run the app:
-   ```bash
-   python PaintedDesktop/main.py
-   ```
-
-### Building the Installer
-
-1. Install PyInstaller and Inno Setup:
-   ```bash
-   pip install pyinstaller
-   choco install innosetup  # or download from https://jrsoftware.org/isdl.php
-   ```
-
-2. Build the PyInstaller bundle:
-   ```bash
-   pyinstaller PaintedDesktop.spec
-   ```
-
-3. Build the installer:
-   ```bash
-   iscc installer/setup.iss
-   ```
-
-   The installer will be created at `dist/PaintedDesktopSetup.exe`.
-
-## Architecture
-
-```
-PaintedDesktop/
-├── main.py              # Entry point, tray icon, scheduler
-├── wallpaper.py         # Windows wallpaper setter (ctypes)
-├── fetcher.py           # API clients (ARTIC, Rijksmuseum, Wikimedia)
-├── filter.py            # Painting genre/medium filtering
-├── history.py           # history.json management
-├── settings.py          # settings.json management + UI
-├── info_popup.py        # Info & history popup windows
-├── assets/
-│   └── tray_icon.png    # 64×64 tray icon
-└── requirements.txt
+```bash
+git clone https://github.com/lflowers01/PaintedDesktop.git
+cd PaintedDesktop
+python -m venv venv
+venv\Scripts\activate
+pip install -r PaintedDesktop/requirements.txt
+python PaintedDesktop/main.py
 ```
 
-## Error Handling
+### Build the installer
 
-- **Network unavailable**: If the network is down at change time, the app retries every 15 minutes.
-- **No qualifying images**: After 10 fetch attempts across all sources, the app logs a failure and leaves the current wallpaper unchanged.
-- **Image too small**: Images smaller than your monitor resolution are automatically skipped.
+```bash
+pip install pyinstaller
+pyinstaller PaintedDesktop.spec
+iscc installer/setup.iss
+```
 
-All errors are logged to `%APPDATA%\PaintedDesktop\app.log` with automatic rotation at 1 MB.
-
-## License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+The installer will be at `installer/dist/PaintedDesktopSetup.exe`.
 
 ## Troubleshooting
 
-**The tray icon isn't showing:**
-- Try restarting the application
-- Ensure your system tray is visible on your taskbar
-- Check that the app isn't already running in the background
+**Tray icon not showing** — check that the app isn't already running in the background. Look in Task Manager for `PaintedDesktop.exe`.
 
-**Wallpaper not changing:**
-- Check `%APPDATA%\PaintedDesktop\app.log` for errors
-- Verify your internet connection
-- Try clicking "Change now" to force an immediate fetch
-- Ensure your monitor resolution is being detected correctly (Settings window shows it)
+**Wallpaper not changing** — check `%APPDATA%\PaintedDesktop\app.log` for errors. Try "Change now" from the tray menu to force an immediate fetch.
 
-**Settings aren't saving:**
-- Ensure you have write permissions to `%APPDATA%\PaintedDesktop\`
-- Check the app log for permission errors
+**Wrong resolution** — open Settings and confirm the width and height match your monitor.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
 
 ## Contributing
 
-Found a bug or have a feature request? Open an issue on [GitHub](https://github.com/lflowers01/PaintedDesktop/issues).
-
----
-
-Enjoy your daily dose of art! 🎨
-
+Open an issue or PR on [GitHub](https://github.com/lflowers01/PaintedDesktop/issues).

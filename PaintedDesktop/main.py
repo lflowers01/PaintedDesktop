@@ -195,65 +195,19 @@ class PaintedDesktop:
             
             used_ids = self.history_manager.get_used_ids()
             
-            # Try ARTIC first
-            artic_fetcher = ARTICFetcher()
+            # Try Rijksmuseum first
+            rij_fetcher = RijksmuseumFetcher()
             max_attempts = 10
             attempts = 0
-            
+
             while attempts < max_attempts:
-                for style in art_styles:
-                    paintings = artic_fetcher.search(style, limit=50)
-                    for painting in paintings:
-                        painting_id = painting.get('id')
-                        if painting_id in used_ids:
-                            continue
-                        
-                        if not painting_filter.passes_filter(painting):
-                            continue
-                        
-                        # Try to fetch image
-                        image_path = artic_fetcher.fetch_image(painting, min_res, self.cache_dir)
-                        if image_path:
-                            # Set wallpaper
-                            if set_wallpaper(image_path):
-                                # Save to history
-                                metadata = self._get_painting_metadata(painting, 'artic')
-                                image_url = artic_fetcher.get_image_url(painting.get('image_id'))
-                                
-                                self.history_manager.add_entry(
-                                    title=metadata['title'],
-                                    artist=metadata['artist'],
-                                    year=metadata['year'],
-                                    source_institution="Art Institute of Chicago",
-                                    source_url=metadata['source_url'],
-                                    image_url=image_url,
-                                    painting_id=metadata['painting_id'],
-                                    image_path=image_path
-                                )
-                                
-                                # Update settings
-                                self.settings_manager.set('last_wallpaper_date', today)
-                                self.settings_manager.set('last_wallpaper_id', painting_id)
-                                
-                                # Cleanup old cache
-                                self._cleanup_cache()
-                                
-                                self.logger.info(f"Wallpaper set: {metadata['title']}")
-                                return True
-                
-                attempts += 1
-            
-            # Try Rijksmuseum if enabled
-         
-            if api_key:
-                rij_fetcher = RijksmuseumFetcher()
                 for style in art_styles:
                     paintings = rij_fetcher.search(style, limit=50)
                     for painting in paintings:
                         painting_id = painting.get('objectNumber')
                         if painting_id in used_ids:
                             continue
-                        
+
                         image_path = rij_fetcher.fetch_image(painting, min_res, self.cache_dir)
                         if image_path:
                             if set_wallpaper(image_path):
@@ -268,14 +222,46 @@ class PaintedDesktop:
                                     painting_id=metadata['painting_id'],
                                     image_path=image_path
                                 )
-                                
                                 self.settings_manager.set('last_wallpaper_date', today)
                                 self.settings_manager.set('last_wallpaper_id', painting_id)
                                 self._cleanup_cache()
-                                
                                 self.logger.info(f"Wallpaper set from Rijksmuseum: {metadata['title']}")
                                 return True
-            
+                attempts += 1
+
+            # Fallback to ARTIC
+            artic_fetcher = ARTICFetcher()
+            for style in art_styles:
+                paintings = artic_fetcher.search(style, limit=50)
+                for painting in paintings:
+                    painting_id = painting.get('id')
+                    if painting_id in used_ids:
+                        continue
+
+                    if not painting_filter.passes_filter(painting):
+                        continue
+
+                    image_path = artic_fetcher.fetch_image(painting, min_res, self.cache_dir)
+                    if image_path:
+                        if set_wallpaper(image_path):
+                            metadata = self._get_painting_metadata(painting, 'artic')
+                            image_url = artic_fetcher.get_image_url(painting.get('image_id'))
+                            self.history_manager.add_entry(
+                                title=metadata['title'],
+                                artist=metadata['artist'],
+                                year=metadata['year'],
+                                source_institution="Art Institute of Chicago",
+                                source_url=metadata['source_url'],
+                                image_url=image_url,
+                                painting_id=metadata['painting_id'],
+                                image_path=image_path
+                            )
+                            self.settings_manager.set('last_wallpaper_date', today)
+                            self.settings_manager.set('last_wallpaper_id', painting_id)
+                            self._cleanup_cache()
+                            self.logger.info(f"Wallpaper set from ARTIC: {metadata['title']}")
+                            return True
+
             self.logger.warning("Could not find suitable painting after max attempts")
             return False
             
