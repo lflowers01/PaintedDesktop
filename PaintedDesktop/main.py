@@ -196,38 +196,7 @@ class PaintedDesktop:
             used_ids = self.history_manager.get_used_ids()
             
             # Try Rijksmuseum first
-            rij_fetcher = RijksmuseumFetcher()
-            max_attempts = 10
-            attempts = 0
-
-            while attempts < max_attempts:
-                for style in art_styles:
-                    paintings = rij_fetcher.search(style, limit=50)
-                    for painting in paintings:
-                        painting_id = painting.get('objectNumber')
-                        if painting_id in used_ids:
-                            continue
-
-                        image_path = rij_fetcher.fetch_image(painting, min_res, self.cache_dir)
-                        if image_path:
-                            if set_wallpaper(image_path):
-                                metadata = self._get_painting_metadata(painting, 'rijksmuseum')
-                                self.history_manager.add_entry(
-                                    title=metadata['title'],
-                                    artist=metadata['artist'],
-                                    year=metadata['year'],
-                                    source_institution="Rijksmuseum",
-                                    source_url=metadata['source_url'],
-                                    image_url=image_path,
-                                    painting_id=metadata['painting_id'],
-                                    image_path=image_path
-                                )
-                                self.settings_manager.set('last_wallpaper_date', today)
-                                self.settings_manager.set('last_wallpaper_id', painting_id)
-                                self._cleanup_cache()
-                                self.logger.info(f"Wallpaper set from Rijksmuseum: {metadata['title']}")
-                                return True
-                attempts += 1
+            
 
             # Fallback to ARTIC
             artic_fetcher = ARTICFetcher()
@@ -261,7 +230,38 @@ class PaintedDesktop:
                             self._cleanup_cache()
                             self.logger.info(f"Wallpaper set from ARTIC: {metadata['title']}")
                             return True
+            rij_fetcher = RijksmuseumFetcher()
+            max_attempts = 10
+            attempts = 0
 
+            while attempts < max_attempts:
+                for style in art_styles:
+                    paintings = rij_fetcher.search(style, limit=50)
+                    for painting in paintings:
+                        painting_id = painting.get('objectNumber')
+                        if painting_id in used_ids:
+                            continue
+
+                        image_path = rij_fetcher.fetch_image(painting, min_res, self.cache_dir)
+                        if image_path:
+                            if set_wallpaper(image_path):
+                                metadata = self._get_painting_metadata(painting, 'rijksmuseum')
+                                self.history_manager.add_entry(
+                                    title=metadata['title'],
+                                    artist=metadata['artist'],
+                                    year=metadata['year'],
+                                    source_institution="Rijksmuseum",
+                                    source_url=metadata['source_url'],
+                                    image_url=image_path,
+                                    painting_id=metadata['painting_id'],
+                                    image_path=image_path
+                                )
+                                self.settings_manager.set('last_wallpaper_date', today)
+                                self.settings_manager.set('last_wallpaper_id', painting_id)
+                                self._cleanup_cache()
+                                self.logger.info(f"Wallpaper set from Rijksmuseum: {metadata['title']}")
+                                return True
+                attempts += 1
             self.logger.warning("Could not find suitable painting after max attempts")
             return False
             
