@@ -10,22 +10,22 @@ jobs:
     runs-on: windows-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r DailyArtWallpaper/requirements.txt
+        pip install -r PaintedDesktop/requirements.txt
         pip install pyinstaller
     
     - name: Build PyInstaller bundle
       run: |
-        pyinstaller DailyArtWallpaper.spec
+        pyinstaller PaintedDesktop.spec
     
     - name: Download and setup Inno Setup
       run: |
@@ -33,7 +33,7 @@ jobs:
     
     - name: Build installer
       run: |
-        iscc /F"DailyArtWallpaperSetup" installer/setup.iss
+        iscc /F"PaintedDesktopSetup" installer/setup.iss
     
     - name: Create Release
       uses: actions/create-release@v1
@@ -52,6 +52,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: dist/DailyArtWallpaperSetup.exe
-        asset_name: DailyArtWallpaperSetup.exe
+        asset_path: dist/PaintedDesktopSetup.exe
+        asset_name: PaintedDesktopSetup.exe
         asset_content_type: application/octet-stream

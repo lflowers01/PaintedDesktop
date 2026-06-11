@@ -37,19 +37,17 @@ env/
 Thumbs.db
 
 # App data (generated at runtime)
-DailyArtWallpaper/data/
-%APPDATA%/DailyArtWallpaper/
+PaintedDesktop/data/
+%APPDATA%/PaintedDesktop/
 
 # Build outputs
 dist/
 build/
-*.spec
 
 # PyInstaller
 dist/
 build/
 *.manifest
-*.spec
 
 # Inno Setup
 Output/
