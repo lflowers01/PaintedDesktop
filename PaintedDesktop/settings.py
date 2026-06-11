@@ -1,4 +1,4 @@
-"""Settings management for Daily Art Wallpaper app."""
+"""Settings management for PaintedDesktop app."""
 
 import json
 import os
@@ -93,7 +93,7 @@ class SettingsWindow:
             return
         
         self.window = tk.Tk()
-        self.window.title("Daily Art Wallpaper - Settings")
+        self.window.title("PaintedDesktop - Settings")
         self.window.geometry("500x400")
         self.window.resizable(False, False)
         

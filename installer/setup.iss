@@ -1,19 +1,19 @@
-; Inno Setup script for Daily Art Wallpaper
+; Inno Setup script for PaintedDesktop
 ; This script creates a Windows installer for the application
 
-#define MyAppName "Daily Art Wallpaper"
+#define MyAppName "PaintedDesktop"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "Daily Art Wallpaper"
-#define MyAppExeName "DailyArtWallpaper.exe"
+#define MyAppPublisher "PaintedDesktop"
+#define MyAppExeName "PaintedDesktop.exe"
 #define MyAppAssocName MyAppName + " App"
 #define MyAppAssocExt ".daw"
-#define MyAppAssocProgId "DailyArtWallpaper.1"
-#define BuildOutputDir "dist\DailyArtWallpaper"
+#define MyAppAssocProgId "PaintedDesktop.1"
+#define BuildOutputDir "dist\PaintedDesktop"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{12345678-1234-1234-1234-123456789012}}
+AppId={{E5CA471E-CADD-427E-BF2A-C4F3AE25B8AA}}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -28,7 +28,7 @@ SolidCompression=yes
 WizardStyle=modern
 UninstallDisplayIcon={app}\{#MyAppExeName}
 OutputDir=dist
-OutputBaseFilename=DailyArtWallpaperSetup
+OutputBaseFilename=PaintedDesktopSetup
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -36,7 +36,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
-Name: "startup"; Description: "Launch Daily Art Wallpaper at Windows startup"; GroupDescription: "Startup Options"; Flags: unchecked
+Name: "startup"; Description: "Launch PaintedDesktop at Windows startup"; GroupDescription: "Startup Options"; Flags: unchecked
 
 [Files]
 Source: "{#BuildOutputDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion

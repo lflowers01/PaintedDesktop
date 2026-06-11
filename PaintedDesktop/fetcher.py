@@ -34,15 +34,7 @@ class ARTICFetcher:
             List of painting dicts
         """
         params = {
-            'q': '',
-            'query': {
-                'bool': {
-                    'must': [
-                        {'match': {'medium_display': 'oil'}},
-                        {'match': {'subject_titles': subject}},
-                    ]
-                }
-            },
+            'q': f'oil {subject}',
             'limit': limit,
             'fields': [
                 'id',

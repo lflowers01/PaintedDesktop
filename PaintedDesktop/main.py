@@ -1,4 +1,4 @@
-"""Main entry point for Daily Art Wallpaper app."""
+"""Main entry point for PaintedDesktop app."""
 
 import sys
 import os
@@ -63,18 +63,18 @@ def get_app_data_dir() -> str:
     if sys.platform == 'win32':
         appdata = os.environ.get('APPDATA', '')
         if appdata:
-            return os.path.join(appdata, 'DailyArtWallpaper')
-    return os.path.expanduser('~/.dailyartwallpaper')
+            return os.path.join(appdata, 'PaintedDesktop')
+    return os.path.expanduser('~/.painteddesktop')
 
 
-class DailyArtWallpaper:
+class PaintedDesktop:
     """Main application class."""
     
     def __init__(self):
         """Initialize the application."""
         self.app_data_dir = get_app_data_dir()
         self.logger = setup_logging(self.app_data_dir)
-        self.logger.info("Daily Art Wallpaper starting...")
+        self.logger.info("PaintedDesktop starting...")
         
         self.settings_manager = SettingsManager(self.app_data_dir)
         self.history_manager = HistoryManager(self.app_data_dir)
@@ -111,9 +111,9 @@ class DailyArtWallpaper:
             )
             
             self.tray_icon = pystray.Icon(
-                "DailyArtWallpaper",
+                "PaintedDesktop",
                 icon_image,
-                "Daily Art Wallpaper",
+                "PaintedDesktop",
                 menu
             )
             
@@ -359,7 +359,7 @@ class DailyArtWallpaper:
 
 def main():
     """Entry point."""
-    app = DailyArtWallpaper()
+    app = PaintedDesktop()
     app.run()
 
 

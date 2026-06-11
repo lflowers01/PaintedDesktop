@@ -89,12 +89,12 @@ def register_startup(app_path: str, enable: bool = True) -> bool:
         key = OpenKey(registry, registry_path, 0, 0x20000 | 2)  # Read and Write
         
         if enable:
-            SetValueEx(key, "DailyArtWallpaper", 0, REG_SZ, app_path)
+            SetValueEx(key, "PaintedDesktop", 0, REG_SZ, app_path)
             logger.info("App registered for startup")
         else:
             try:
                 from winreg import DeleteValue
-                DeleteValue(key, "DailyArtWallpaper")
+                DeleteValue(key, "PaintedDesktop")
                 logger.info("App unregistered from startup")
             except FileNotFoundError:
                 pass

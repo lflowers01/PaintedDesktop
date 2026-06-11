@@ -1,4 +1,4 @@
-# Daily Art Wallpaper
+# PaintedDesktop
 
 [![Build Status](https://github.com/lflowers01/PaintedDesktop/workflows/Build%20and%20Release/badge.svg)](https://github.com/lflowers01/PaintedDesktop/actions)
 [![Latest Release](https://img.shields.io/github/v/release/lflowers01/PaintedDesktop?label=latest&sort=semver)](https://github.com/lflowers01/PaintedDesktop/releases)
@@ -24,7 +24,7 @@ Automatically set your Windows desktop wallpaper to a different high-resolution 
 ## Installation
 
 1. Download the latest installer from [Releases](https://github.com/lflowers01/PaintedDesktop/releases)
-2. Run `DailyArtWallpaperSetup.exe`
+2. Run `PaintedDesktopSetup.exe`
 3. Follow the installation wizard
 4. *Optional*: Check "Launch at startup" during installation to run the app automatically when Windows starts
 
@@ -63,7 +63,7 @@ Without this key, the app will use the Art Institute of Chicago API (which has e
 
 ## Where Data Lives
 
-All app data is stored in `%APPDATA%\DailyArtWallpaper\`:
+All app data is stored in `%APPDATA%\PaintedDesktop\`:
 
 - **`settings.json`** — Your preferences (change time, resolution, API keys, etc.)
 - **`history.json`** — Metadata for all wallpapers that have been set (title, artist, year, source, date set)
@@ -96,12 +96,12 @@ If you want to build the app yourself:
 
 3. Install dependencies:
    ```bash
-   pip install -r DailyArtWallpaper/requirements.txt
+   pip install -r PaintedDesktop/requirements.txt
    ```
 
 4. Run the app:
    ```bash
-   python DailyArtWallpaper/main.py
+   python PaintedDesktop/main.py
    ```
 
 ### Building the Installer
@@ -114,7 +114,7 @@ If you want to build the app yourself:
 
 2. Build the PyInstaller bundle:
    ```bash
-   pyinstaller DailyArtWallpaper.spec
+   pyinstaller PaintedDesktop.spec
    ```
 
 3. Build the installer:
@@ -122,12 +122,12 @@ If you want to build the app yourself:
    iscc installer/setup.iss
    ```
 
-   The installer will be created at `dist/DailyArtWallpaperSetup.exe`.
+   The installer will be created at `dist/PaintedDesktopSetup.exe`.
 
 ## Architecture
 
 ```
-DailyArtWallpaper/
+PaintedDesktop/
 ├── main.py              # Entry point, tray icon, scheduler
 ├── wallpaper.py         # Windows wallpaper setter (ctypes)
 ├── fetcher.py           # API clients (ARTIC, Rijksmuseum, Wikimedia)
@@ -146,7 +146,7 @@ DailyArtWallpaper/
 - **No qualifying images**: After 10 fetch attempts across all sources, the app logs a failure and leaves the current wallpaper unchanged.
 - **Image too small**: Images smaller than your monitor resolution are automatically skipped.
 
-All errors are logged to `%APPDATA%\DailyArtWallpaper\app.log` with automatic rotation at 1 MB.
+All errors are logged to `%APPDATA%\PaintedDesktop\app.log` with automatic rotation at 1 MB.
 
 ## License
 
@@ -160,13 +160,13 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 - Check that the app isn't already running in the background
 
 **Wallpaper not changing:**
-- Check `%APPDATA%\DailyArtWallpaper\app.log` for errors
+- Check `%APPDATA%\PaintedDesktop\app.log` for errors
 - Verify your internet connection
 - Try clicking "Change now" to force an immediate fetch
 - Ensure your monitor resolution is being detected correctly (Settings window shows it)
 
 **Settings aren't saving:**
-- Ensure you have write permissions to `%APPDATA%\DailyArtWallpaper\`
+- Ensure you have write permissions to `%APPDATA%\PaintedDesktop\`
 - Check the app log for permission errors
 
 ## Contributing

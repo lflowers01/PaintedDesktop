@@ -1,4 +1,4 @@
-# Daily Art Wallpaper — Build Spec
+# PaintedDesktop — Build Spec
 
 ## Overview
 
@@ -10,7 +10,7 @@ A Windows background service that automatically sets the desktop wallpaper to a 
 
 ### Core Behavior
 
-- On startup and once per day (at a configurable time, default: midnight local time), fetch a new painting and set it as the Windows desktop wallpaper.
+- On startup and once per day (at a configurable time, default: 8:00 AM local time), fetch a new painting and set it as the Windows desktop wallpaper.
 - If the day has already been served (i.e., the app runs but a wallpaper was already set today), do nothing — do not re-fetch or change the wallpaper until the next day's trigger fires.
 - The wallpaper image must be **equal to or larger than the user's primary monitor resolution**. If the fetched image is smaller, skip it and fetch another.
 - The wallpaper display mode should be set to **Fill** (so it scales correctly without black bars and without distorting aspect ratio).
@@ -88,7 +88,7 @@ Settings persist in a `settings.json` file in the app data directory.
 
 ### Image Handling
 
-- Download image to a local cache folder (`%APPDATA%\DailyArtWallpaper\cache\`)
+- Download image to a local cache folder (`%APPDATA%\PaintedDesktop\cache\`)
 - Validate resolution using Pillow before setting — must be `>=` primary monitor dimensions
 - Keep only the last 30 images in cache; delete older ones
 - Filename format: `YYYY-MM-DD_<painting_id>.<ext>`
@@ -104,7 +104,7 @@ Settings persist in a `settings.json` file in the app data directory.
 ## File Structure
 
 ```
-DailyArtWallpaper/
+PaintedDesktop/
 ├── main.py                  # Entry point, tray icon, scheduler
 ├── wallpaper.py             # Windows wallpaper setter
 ├── fetcher.py               # API clients (ARTIC, Rijksmuseum, Wikimedia)
@@ -186,7 +186,7 @@ The README should include:
 - **Installation** — just "download the latest installer from Releases and run it"; no Python needed for end users
 - **Usage** — how to use the tray icon; mention right-click for all controls
 - **Getting a Rijksmuseum API key** — short paragraph, link to `https://data.rijksmuseum.nl/user-generated-content/api/`; note it's optional but improves variety
-- **Where data lives** — `%APPDATA%\DailyArtWallpaper\` with a brief breakdown of what's in there
+- **Where data lives** — `%APPDATA%\PaintedDesktop\` with a brief breakdown of what's in there
 - **Building from source** — steps for developers who want to clone and run from Python directly
 - **License** — MIT
 - Badges at top: build status (GitHub Actions), latest release version, license

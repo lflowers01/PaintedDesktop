@@ -1,4 +1,4 @@
-"""History management for Daily Art Wallpaper app."""
+"""History management for PaintedDesktop app."""
 
 import json
 from pathlib import Path

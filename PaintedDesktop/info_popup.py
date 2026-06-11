@@ -1,4 +1,4 @@
-"""Info popup and history window for Daily Art Wallpaper."""
+"""Info popup and history window for PaintedDesktop."""
 
 import tkinter as tk
 from tkinter import ttk
