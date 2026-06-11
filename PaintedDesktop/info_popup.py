@@ -6,7 +6,17 @@ import threading
 from typing import Optional, Dict, List
 import webbrowser
 
+# Single hidden root window — keeps tkinter alive without showing anything
+_root = None
+_root_lock = threading.Lock()
 
+def get_root():
+    global _root
+    with _root_lock:
+        if _root is None:
+            _root = tk.Tk()
+            _root.withdraw()  # Hide it completely
+        return _root
 class InfoPopup:
     """Popup window showing current wallpaper info."""
     
@@ -28,7 +38,7 @@ class InfoPopup:
             self.window.lift()
             return
         
-        self.window = tk.Tk()
+        self.window = tk.Toplevel(get_root())
         self.window.title("What's on my desktop?")
         self.window.geometry("500x300")
         self.window.resizable(False, False)
@@ -114,7 +124,7 @@ class InfoPopup:
             self.window.destroy()
         
         self.window.protocol("WM_DELETE_WINDOW", on_closing)
-        self.window.mainloop()
+        self.window.wait_window()
     
     def show_threaded(self):
         """Show popup in a separate thread."""
@@ -144,7 +154,7 @@ class HistoryWindow:
             self.window.lift()
             return
         
-        self.window = tk.Tk()
+        tk.Toplevel(get_root())
         self.window.title("Wallpaper History")
         self.window.geometry("700x500")
         
@@ -238,7 +248,7 @@ class HistoryWindow:
             self.window.destroy()
         
         self.window.protocol("WM_DELETE_WINDOW", on_closing)
-        self.window.mainloop()
+        self.window.wait_window()
     
     def show_threaded(self):
         """Show window in a separate thread."""

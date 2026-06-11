@@ -307,7 +307,7 @@ class PaintedDesktop:
         self.running = False
         if self.tray_icon:
             self.tray_icon.stop()
-        sys.exit(0)
+
     
     def run(self):
         """Run the application."""
