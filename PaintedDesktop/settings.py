@@ -57,8 +57,12 @@ class SettingsManager:
     def get_change_time(self) -> time:
         """Parse change time from settings."""
         time_str = self.settings.get("change_time", "08:00")
-        parts = time_str.split(":")
-        return time(int(parts[0]), int(parts[1]))
+        try:
+            parts = time_str.split(":")
+            return time(int(parts[0]), int(parts[1]))
+        except (ValueError, IndexError):
+            # Return default time if parsing fails
+            return time(8, 0)
     
     def set_change_time(self, hour: int, minute: int):
         """Set change time."""

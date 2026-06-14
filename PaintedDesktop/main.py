@@ -195,10 +195,7 @@ class PaintedDesktop:
             
             used_ids = self.history_manager.get_used_ids()
             
-            # Try Rijksmuseum first
-            
-
-            # Fallback to ARTIC
+            # Try ARTIC first (primary source)
             artic_fetcher = ARTICFetcher()
             for style in art_styles:
                 paintings = artic_fetcher.search(style, limit=50)
@@ -230,6 +227,8 @@ class PaintedDesktop:
                             self._cleanup_cache()
                             self.logger.info(f"Wallpaper set from ARTIC: {metadata['title']}")
                             return True
+            
+            # Fallback to Rijksmuseum if ARTIC fails
             rij_fetcher = RijksmuseumFetcher()
             max_attempts = 10
             attempts = 0
@@ -262,11 +261,12 @@ class PaintedDesktop:
                                 self.logger.info(f"Wallpaper set from Rijksmuseum: {metadata['title']}")
                                 return True
                 attempts += 1
+            
             self.logger.warning("Could not find suitable painting after max attempts")
             return False
             
         except Exception as e:
-            self.logger.error(f"Error fetching/setting wallpaper: {e}")
+            self.logger.error(f"Error fetching/setting wallpaper: {e}", exc_info=True)
             return False
     
     def _cleanup_cache(self):
