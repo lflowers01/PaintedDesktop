@@ -1,276 +1,269 @@
 """API fetchers for art sources."""
 
 import requests
-import logging
-from typing import Optional, Tuple, Dict, List
-from PIL import Image
-from io import BytesIO
 from pathlib import Path
-import os
-
+from typing import Dict, List, Optional, Tuple
+import logging
 
 logger = logging.getLogger(__name__)
 
-# API timeouts and retries
-REQUEST_TIMEOUT = 10
-MAX_RETRIES = 3
-
-
 class ARTICFetcher:
-    """Art Institute of Chicago API fetcher."""
-    
-    BASE_URL = "https://api.artic.edu/api/v1/artworks/search"
-    IMAGE_BASE_URL = "https://www.artic.edu/iiif/2"
-    
-    def search(self, subject: str, limit: int = 100) -> List[Dict]:
-        """
-        Search ARTIC for paintings.
-        
-        Args:
-            subject: 'landscape' or 'seascape'
-            limit: Number of results to fetch
-            
-        Returns:
-            List of painting dicts
-        """
-        params = {
-            'q': f'oil {subject}',
-            'limit': limit,
-            'fields': [
-                'id',
-                'title',
-                'artist_display',
-                'date_display',
-                'medium_display',
-                'subject_titles',
-                'image_id',
-                'dimensions',
-            ]
-        }
-        
+    def __init__(self):
+        self.session = requests.Session()
+        # Set a real browser User-Agent to avoid 403 Forbidden errors
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'AIC-User-Agent': 'PaintedDesktop/1.0'
+        })
+
+    def search(self, subject: str, limit: int = 10) -> List[Dict]:
         try:
-            response = requests.post(
-                self.BASE_URL,
-                json=params,
-                timeout=REQUEST_TIMEOUT
-            )
+            params = {
+                'q': f'oil paint {subject}',
+                'query[type]': 'painting',
+                'limit': limit,
+                'fields': 'id,title,image_id,artist_title,date_display'
+            }
+            response = self.session.get('https://api.artic.edu/api/v1/artworks/search', params=params)
             response.raise_for_status()
+            
             data = response.json()
-            return data.get('data', [])
+            paintings = []
+            if 'data' in data:
+                for artwork in data['data']:
+                    if artwork.get('image_id'):
+                        paintings.append({
+                            'id': artwork['id'],
+                            'title': artwork.get('title', ''),
+                            'artist': artwork.get('artist_title', ''),
+                            'date': artwork.get('date_display', ''),
+                            'image_id': artwork['image_id']
+                        })
+            return paintings
         except Exception as e:
             logger.error(f"ARTIC search error: {e}")
             return []
-    
-    def get_image_url(self, image_id: str, width: int = 1920) -> str:
-        """
-        Get IIIF image URL.
-        
-        Args:
-            image_id: Image ID from ARTIC
-            width: Requested width
-            
-        Returns:
-            Image URL
-        """
-        if not image_id:
-            return None
-        return f"{self.IMAGE_BASE_URL}/{image_id}/full/{width},/0/default.jpg"
-    
-    def fetch_image(self, painting: Dict, min_resolution: Tuple[int, int],
-                    cache_dir: Path) -> Optional[str]:
-        """
-        Fetch and validate image.
-        
-        Args:
-            painting: Painting dict from search results
-            min_resolution: (width, height) minimum
-            cache_dir: Directory to cache image
-            
-        Returns:
-            Path to cached image or None
-        """
-        image_id = painting.get('image_id')
-        if not image_id:
-            return None
-        
-        painting_id = painting.get('id')
-        if not painting_id:
-            return None
-        
-        # Try different resolutions
-        for width in [min_resolution[0] * 2, min_resolution[0], 1920]:
-            try:
-                url = self.get_image_url(image_id, width)
-                response = requests.get(url, timeout=REQUEST_TIMEOUT)
-                response.raise_for_status()
-                
-                # Validate image
-                img = Image.open(BytesIO(response.content))
-                img_width, img_height = img.size
-                
-                if img_width >= min_resolution[0] and img_height >= min_resolution[1]:
-                    # Cache image
-                    filename = f"{painting_id}.jpg"
-                    filepath = cache_dir / filename
-                    with open(filepath, 'wb') as f:
-                        f.write(response.content)
-                    logger.info(f"Cached image: {filepath}")
-                    return str(filepath)
-                else:
-                    logger.debug(f"Image too small: {img_width}x{img_height}")
-            except Exception as e:
-                logger.debug(f"Error fetching ARTIC image: {e}")
-                continue
-        
-        return None
 
+    def fetch_image(self, painting: Dict, min_resolution: Tuple[int, int], cache_dir: Path) -> Optional[str]:
+        try:
+            # Construct the IIIF image URL
+            image_id = painting['image_id']
+            if not image_id:
+                return None
+                
+            # Use the IIIF API to get the image
+            iiif_url = f"https://www.artic.edu/iiif/2/{image_id}/full/843,/0/default.jpg"
+            
+            response = self.session.get(iiif_url)
+            response.raise_for_status()
+            
+            # Save the image to cache
+            cache_path = cache_dir / f"{painting['id']}.jpg"
+            with open(cache_path, 'wb') as f:
+                f.write(response.content)
+                
+            return str(cache_path)
+        except Exception as e:
+            logger.error(f"ARTIC image fetch error: {e}")
+            return None
 
 class RijksmuseumFetcher:
-    """Rijksmuseum API fetcher."""
-    
-    BASE_URL = "https://data.rijksmuseum.nl/search/collection"
-    
-    
-    def search(self, subject: str, limit: int = 100) -> List[Dict]:
-        """
-        Search Rijksmuseum for paintings.
-        
-        Args:
-            subject: 'landscape' or 'seascape'
-            limit: Number of results
-            
-        Returns:
-            List of painting dicts
-        """
-    
-        # Build proper search parameters based on subject
-        params = {
-            'q': f'oil paint {subject}',
-            'type': 'painting',
-            'imgonly': 'True',
-            'ps': limit,
-            'p': 1,
-            'format': 'json',
-        }
-        
-        # Add subject-specific filters
-        if subject == 'landscape':
-            params['f.type.en.norm'] = 'landscape'
-        elif subject == 'seascape':
-            params['f.type.en.norm'] = 'seascape'
-        
+    def __init__(self):
+        self.session = requests.Session()
+        # Set a real browser User-Agent to avoid 403 Forbidden errors
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        })
+
+    def search(self, subject: str, limit: int = 10) -> List[Dict]:
         try:
-            response = requests.get(
-                self.BASE_URL,
-                params=params,
-                timeout=REQUEST_TIMEOUT
-            )
+            # Use the current Rijksmuseum API with correct parameters
+            params = {
+                'type': 'painting',
+                'material': 'oil paint',
+                'imageAvailable': 'true',
+                'format': 'json'
+            }
+            
+            # Add subject filter if provided (using description field)
+            if subject:
+                # Try to match landscape or seascape as described in the task
+                if 'landscape' in subject.lower():
+                    params['description'] = 'landscape'
+                elif 'seascape' in subject.lower():
+                    params['description'] = 'seascape'
+            
+            response = self.session.get('https://data.rijksmuseum.nl/search/collection', params=params)
             response.raise_for_status()
+            
             data = response.json()
-            return data.get('artObjects', [])
+            paintings = []
+            
+            # Parse the orderedItems to get the PIDs
+            if 'orderedItems' in data:
+                for item in data['orderedItems']:
+                    pid = item.get('id')
+                    if pid:
+                        paintings.append({
+                            'id': pid,
+                            'pid': pid  # Store the PID for later resolution
+                        })
+            
+            return paintings[:limit]  # Return only requested limit
+            
         except Exception as e:
             logger.error(f"Rijksmuseum search error: {e}")
             return []
-    
-    def fetch_image(self, painting: Dict, min_resolution: Tuple[int, int],
-                    cache_dir: Path) -> Optional[str]:
-        """
-        Fetch and validate image.
-        
-        Args:
-            painting: Painting dict from search results
-            min_resolution: (width, height) minimum
-            cache_dir: Directory to cache image
-            
-        Returns:
-            Path to cached image or None
-        """
-        web_image = painting.get('webImage', {})
-        if not web_image:
-            return None
-        
-        url = web_image.get('url')
-        if not url:
-            return None
-        
-        # Check resolution in metadata first
-        img_width = web_image.get('width', 0)
-        img_height = web_image.get('height', 0)
-        
-        if img_width < min_resolution[0] or img_height < min_resolution[1]:
-            logger.debug(f"Image too small: {img_width}x{img_height}")
-            return None
-        
+
+    def fetch_image(self, painting: Dict, min_resolution: Tuple[int, int], cache_dir: Path) -> Optional[str]:
         try:
-            response = requests.get(url, timeout=REQUEST_TIMEOUT)
+            # Get the object details by resolving the PID
+            pid = painting.get('pid') or painting.get('id')
+            if not pid:
+                return None
+                
+            # Resolve the object to get image information
+            object_url = f"{pid}?_profile=*"
+            response = self.session.get(object_url)
             response.raise_for_status()
             
-            # Verify with PIL
-            img = Image.open(BytesIO(response.content))
-            img_width, img_height = img.size
+            object_data = response.json()
             
-            if img_width >= min_resolution[0] and img_height >= min_resolution[1]:
-                painting_id = painting.get('id', painting.get('objectNumber', 'unknown'))
-                filename = f"{painting_id}.jpg"
-                filepath = cache_dir / filename
+            # Extract image information from the representation
+            representations = object_data.get('representation', [])
+            if not representations:
+                return None
                 
-                with open(filepath, 'wb') as f:
-                    f.write(response.content)
-                logger.info(f"Cached Rijksmuseum image: {filepath}")
-                return str(filepath)
+            # Look for the IIIF image URL in the representations
+            iiif_image_url = None
+            direct_image_url = None
+            
+            for rep in representations:
+                if isinstance(rep, dict):
+                    # Check for IIIF service
+                    if 'id' in rep and 'type' in rep and rep['type'] == 'ImageService2':
+                        iiif_image_url = rep['id']
+                    elif 'url' in rep and 'format' in rep:
+                        # Direct image URL
+                        direct_image_url = rep['url']
+            
+            # If we have IIIF info, we'll need to construct the image URL differently
+            if iiif_image_url:
+                # Use the IIIF image service to get full resolution
+                image_url = f"{iiif_image_url}/full/full/0/default.jpg"
+            elif direct_image_url:
+                image_url = direct_image_url
+            else:
+                return None
+            
+            # Fetch the actual image
+            response = self.session.get(image_url)
+            response.raise_for_status()
+            
+            # Save the image to cache
+            cache_path = cache_dir / f"{pid.split('/')[-1]}.jpg"
+            with open(cache_path, 'wb') as f:
+                f.write(response.content)
+                
+            return str(cache_path)
         except Exception as e:
-            logger.error(f"Error fetching Rijksmuseum image: {e}")
-        
-        return None
-
+            logger.error(f"Rijksmuseum image fetch error: {e}")
+            return None
 
 class WikimediaFetcher:
-    """Wikimedia Commons fallback fetcher."""
-    
-    BASE_URL = "https://commons.wikimedia.org/w/api.php"
-    
-    def search(self, subject: str, limit: int = 100) -> List[Dict]:
-        """
-        Search Wikimedia Commons for paintings.
-        
-        Args:
-            subject: 'landscape' or 'seascape'
-            limit: Number of results
-            
-        Returns:
-            List of painting dicts
-        """
-        search_term = f"{subject} painting oil"
-        params = {
-            'action': 'query',
-            'format': 'json',
-            'list': 'search',
-            'srsearch': search_term,
-            'srnamespace': 6,  # File namespace
-            'srlimit': limit,
-        }
-        
+    def __init__(self):
+        self.session = requests.Session()
+        # Set a real browser User-Agent to avoid bot blocking
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        })
+
+    def search(self, subject: str, limit: int = 10) -> List[Dict]:
         try:
-            response = requests.get(
-                self.BASE_URL,
-                params=params,
-                timeout=REQUEST_TIMEOUT
-            )
+            # Use the MediaWiki API to search for images
+            params = {
+                'action': 'query',
+                'list': 'search',
+                'srsearch': f'filetype:image {subject}',
+                'srnamespace': 6,  # File namespace
+                'srlimit': limit,
+                'format': 'json'
+            }
+            
+            response = self.session.get('https://commons.wikimedia.org/w/api.php', params=params)
             response.raise_for_status()
+            
             data = response.json()
-            return data.get('query', {}).get('search', [])
+            paintings = []
+            
+            if 'query' in data and 'search' in data['query']:
+                for result in data['query']['search']:
+                    file_title = result.get('title')
+                    if file_title:
+                        paintings.append({
+                            'id': file_title,
+                            'title': file_title
+                        })
+            
+            return paintings
+            
         except Exception as e:
             logger.error(f"Wikimedia search error: {e}")
             return []
-    
-    def fetch_image(self, painting: Dict, min_resolution: Tuple[int, int],
-                    cache_dir: Path) -> Optional[str]:
-        """
-        Fetch and validate image (simplified for Wikimedia).
-        
-        Returns:
-            Path to cached image or None
-        """
-        # Wikimedia is kept as fallback; basic implementation
-        logger.info("Wikimedia fallback - skipping for now")
-        return None
+
+    def fetch_image(self, painting: Dict, min_resolution: Tuple[int, int], cache_dir: Path) -> Optional[str]:
+        try:
+            # Get image info using the MediaWiki API
+            file_title = painting.get('id')
+            if not file_title:
+                return None
+                
+            params = {
+                'action': 'query',
+                'titles': file_title,
+                'prop': 'imageinfo',
+                'iiprop': 'url|size',
+                'format': 'json'
+            }
+            
+            response = self.session.get('https://commons.wikimedia.org/w/api.php', params=params)
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            # Extract image information
+            pages = data.get('query', {}).get('pages', {})
+            if not pages:
+                return None
+                
+            page_id = list(pages.keys())[0]
+            imageinfo = pages[page_id].get('imageinfo', [])
+            
+            if not imageinfo:
+                return None
+                
+            info = imageinfo[0]
+            image_url = info.get('url')
+            width = info.get('width', 0)
+            height = info.get('height', 0)
+            
+            # Check resolution
+            if width < min_resolution[0] or height < min_resolution[1]:
+                return None
+                
+            if not image_url:
+                return None
+            
+            # Download the image
+            response = self.session.get(image_url)
+            response.raise_for_status()
+            
+            # Save the image to cache
+            cache_path = cache_dir / f"{file_title.replace('File:', '').replace('/', '_')}.jpg"
+            with open(cache_path, 'wb') as f:
+                f.write(response.content)
+                
+            return str(cache_path)
+        except Exception as e:
+            logger.error(f"Wikimedia image fetch error: {e}")
+            return None
