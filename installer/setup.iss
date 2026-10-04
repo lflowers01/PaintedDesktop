@@ -1,30 +1,39 @@
 ; Inno Setup script for PaintedDesktop
-; This script creates a Windows installer for the application
+; Build: iscc /DMyAppVersion=2.0.0 installer\setup.iss  (after pyinstaller PaintedDesktop.spec)
 
 #define MyAppName "PaintedDesktop"
-#define MyAppVersion "1.0.0"
-#define MyAppPublisher "PaintedDesktop"
+#ifndef MyAppVersion
+  #define MyAppVersion "2.0.0"
+#endif
+#define MyAppPublisher "Lucas Flowers"
+#define MyAppURL "https://github.com/lflowers01/PaintedDesktop"
 #define MyAppExeName "PaintedDesktop.exe"
-#define MyAppAssocName MyAppName + " App"
-#define MyAppAssocExt ".daw"
-#define MyAppAssocProgId "PaintedDesktop.1"
 #define BuildOutputDir "..\dist\PaintedDesktop"
 
 [Setup]
-; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
-; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{E5CA471E-CADD-427E-BF2A-C4F3AE25B8AA}}
+AppId={{E5CA471E-CADD-427E-BF2A-C4F3AE25B8AA}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-;AppVerName={#MyAppName} {#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
+AppPublisherURL={#MyAppURL}
+AppSupportURL={#MyAppURL}/issues
+VersionInfoVersion={#MyAppVersion}
+; Per-user install: no admin prompt, and matches the per-user startup entry
+PrivilegesRequired=lowest
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
+DisableDirPage=auto
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 LicenseFile=..\LICENSE
-Compression=lzma
+SetupIconFile=..\PaintedDesktop\assets\icon.ico
+UninstallDisplayIcon={app}\{#MyAppExeName}
+; Close a running copy before replacing its files
+CloseApplications=force
+Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-UninstallDisplayIcon={app}\{#MyAppExeName}
 OutputDir=dist
 OutputBaseFilename=PaintedDesktopSetup
 
@@ -33,23 +42,24 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
-Name: "startup"; Description: "Launch PaintedDesktop at Windows startup"; GroupDescription: "Startup Options"; Flags: unchecked
+
+[InstallDelete]
+; Files from older builds that no longer exist in this one
+Type: filesandordirs; Name: "{app}\_internal"
 
 [Files]
-Source: "{#BuildOutputDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BuildOutputDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{autopf}\{#MyAppName}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
-
-[Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [Registry]
-; Register for startup if task is selected
-Root: HKA; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "{#MyAppName}"; ValueData: "{app}\{#MyAppExeName}"; Tasks: startup; Flags: uninsdeletevalue
+; The app keeps this in sync with its "Launch at startup" setting; the uninstaller removes it.
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "{#MyAppName}"; ValueData: """{app}\{#MyAppExeName}"""; Flags: uninsdeletevalue
 
+[Run]
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall
+
+[UninstallRun]
+Filename: "{sys}\taskkill.exe"; Parameters: "/f /im {#MyAppExeName}"; Flags: runhidden; RunOnceId: "StopApp"

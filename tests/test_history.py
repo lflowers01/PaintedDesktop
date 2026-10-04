@@ -49,3 +49,16 @@ def test_history_save_load(temp_data_dir):
     # Check used IDs
     used = manager2.get_used_ids()
     assert "999" in used
+
+
+def test_used_ids_are_strings_including_legacy_ints(temp_data_dir):
+    Path(temp_data_dir, "history.json").write_text(json.dumps([{"painting_id": 138, "date_set": "2026-06-23T12:20:58.598895"}]))
+    manager = HistoryManager(temp_data_dir)
+    assert manager.get_used_ids() == {"138"}
+    assert manager.last_set_time().day == 23
+
+
+def test_corrupted_history_starts_empty(temp_data_dir):
+    Path(temp_data_dir, "history.json").write_text('{"invalid": json')
+    manager = HistoryManager(temp_data_dir)
+    assert manager.get_history() == [] and manager.last_set_time() is None

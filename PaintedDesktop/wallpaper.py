@@ -1,119 +1,89 @@
-"""Windows wallpaper setter using ctypes."""
+"""Windows desktop integration: wallpaper, screen size and launch-at-startup."""
 
 import ctypes
-import os
-from pathlib import Path
-from winreg import ConnectRegistry, OpenKey, SetValueEx, HKEY_CURRENT_USER, REG_SZ, REG_DWORD
 import logging
-
+import os
+from winreg import HKEY_CURRENT_USER, KEY_READ, KEY_WRITE, REG_DWORD, REG_SZ, DeleteValue, OpenKey, SetValueEx
 
 logger = logging.getLogger(__name__)
 
+SPI_SETDESKWALLPAPER = 20
+SPIF_UPDATEINIFILE_SENDCHANGE = 3
+WALLPAPER_STYLES = {"fill": "10", "fit": "6"}
+RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
 
-def set_wallpaper(image_path: str) -> bool:
-    """
-    Set Windows desktop wallpaper.
-    
-    Args:
-        image_path: Full path to image file
-        
-    Returns:
-        True if successful, False otherwise
-    """
+
+def enable_dpi_awareness():
+    """Report real pixels instead of DPI-scaled ones (a 2560x1600 screen at 150% otherwise
+    reads as 1707x1067) and render Tk windows crisply. Must run before any window is created."""
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwareness(1)  # system DPI aware
+    except Exception:
+        try:
+            ctypes.windll.user32.SetProcessDPIAware()
+        except Exception as e:
+            logger.debug(f"Could not enable DPI awareness: {e}")
+
+
+def set_wallpaper(image_path: str, mode: str = "fill") -> bool:
+    """Set the desktop wallpaper. mode is "fill" (crop to cover) or "fit" (whole image, black bars)."""
     try:
         image_path = os.path.abspath(image_path)
-
         if not os.path.exists(image_path):
             logger.error(f"Image file not found: {image_path}")
             return False
 
-        # Set wallpaper using ctypes
-        user32 = ctypes.windll.user32
-        result = user32.SystemParametersInfoW(20, 0, image_path, 3)
+        # Windows reads the style when the wallpaper is applied, so write it first.
+        try:
+            with OpenKey(HKEY_CURRENT_USER, r"Control Panel\Desktop", 0, KEY_READ | KEY_WRITE) as key:
+                SetValueEx(key, "WallpaperStyle", 0, REG_SZ, WALLPAPER_STYLES.get(mode, "10"))
+                SetValueEx(key, "TileWallpaper", 0, REG_SZ, "0")
+                SetValueEx(key, "JPEGImportQuality", 0, REG_DWORD, 100)  # no lossy re-encode
+                SetValueEx(key, "AutoColorization", 0, REG_DWORD, 1)  # accent colour follows the painting
+            if mode == "fit":
+                with OpenKey(HKEY_CURRENT_USER, r"Control Panel\Colors", 0, KEY_READ | KEY_WRITE) as key:
+                    SetValueEx(key, "Background", 0, REG_SZ, "0 0 0")
+                # The registry value only applies at next sign-in; this applies it now.
+                ctypes.windll.user32.SetSysColors(1, (ctypes.c_int * 1)(1), (ctypes.c_ulong * 1)(0))
+        except OSError as e:
+            logger.warning(f"Failed to set wallpaper style: {e}")
 
-        if not result:
+        if not ctypes.windll.user32.SystemParametersInfoW(
+                SPI_SETDESKWALLPAPER, 0, image_path, SPIF_UPDATEINIFILE_SENDCHANGE):
             logger.error(f"SystemParametersInfoW failed for {image_path}")
             return False
 
-        # Set wallpaper style to Fill (10) and TileWallpaper to 0
-        try:
-            registry = ConnectRegistry(None, HKEY_CURRENT_USER)
-            
-            # Set wallpaper style to Fit (6) and ensure it is not tiled
-            desktop_path = r"Control Panel\Desktop"
-            desktop_key = OpenKey(registry, desktop_path, 0, 0x20000 | 2)  # Read and Write
-            SetValueEx(desktop_key, "WallpaperStyle", 0, REG_SZ, "6")
-            SetValueEx(desktop_key, "TileWallpaper", 0, REG_SZ, "0")
-            
-            # Enable Windows to automatically pick an accent color from the background
-            SetValueEx(desktop_key, "AutoColorization", 0, REG_DWORD, 1)
-            desktop_key.Close()
-
-            # Set the desktop background color to black (0 0 0) to create black bars
-            colors_path = r"Control Panel\Colors"
-            colors_key = OpenKey(registry, colors_path, 0, 0x20000 | 2)
-            SetValueEx(colors_key, "Background", 0, REG_SZ, "0 0 0")
-            colors_key.Close()
-
-            
-        except Exception as e:
-            logger.error(f"Failed to set wallpaper registry keys: {e}")
-            # Continue even if registry fails
-
-        logger.info(f"Wallpaper set successfully: {image_path}")
+        logger.info(f"Wallpaper set: {image_path}")
         return True
-
     except Exception as e:
         logger.error(f"Error setting wallpaper: {e}")
         return False
 
 
 def get_monitor_resolution() -> tuple:
-    """
-    Get primary monitor resolution.
-    
-    Returns:
-        Tuple of (width, height) in pixels
-    """
+    """Primary monitor resolution in physical pixels."""
     try:
         user32 = ctypes.windll.user32
-        width = user32.GetSystemMetrics(0)  # SM_CXSCREEN
-        height = user32.GetSystemMetrics(1)  # SM_CYSCREEN
-        return (width, height)
+        size = (user32.GetSystemMetrics(0), user32.GetSystemMetrics(1))
+        if size[0] > 0 and size[1] > 0:
+            return size
     except Exception as e:
         logger.warning(f"Failed to get monitor resolution: {e}")
-        return (1920, 1080)  # Default fallback
+    return (1920, 1080)
 
 
 def register_startup(app_path: str, enable: bool = True) -> bool:
-    """
-    Register or unregister app for Windows startup.
-    
-    Args:
-        app_path: Full path to executable
-        enable: True to register, False to unregister
-        
-    Returns:
-        True if successful
-    """
+    """Add or remove the HKCU Run entry that launches the app at sign-in."""
     try:
-        registry_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
-        registry = ConnectRegistry(None, HKEY_CURRENT_USER)
-        key = OpenKey(registry, registry_path, 0, 0x20000 | 2)  # Read and Write
-
-        if enable:
-            SetValueEx(key, "PaintedDesktop", 0, REG_SZ, app_path)
-            logger.info("App registered for startup")
-        else:
-            try:
-                from winreg import DeleteValue
-                DeleteValue(key, "PaintedDesktop")
-                logger.info("App unregistered from startup")
-            except FileNotFoundError:
-                pass
-
-        key.Close()
+        with OpenKey(HKEY_CURRENT_USER, RUN_KEY, 0, KEY_READ | KEY_WRITE) as key:
+            if enable:
+                SetValueEx(key, "PaintedDesktop", 0, REG_SZ, f'"{app_path}"')
+            else:
+                try:
+                    DeleteValue(key, "PaintedDesktop")
+                except FileNotFoundError:
+                    pass
         return True
-    except Exception as e:
+    except OSError as e:
         logger.error(f"Error with startup registration: {e}")
         return False
