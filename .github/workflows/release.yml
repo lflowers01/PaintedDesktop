@@ -35,11 +35,12 @@ jobs:
         run: pyinstaller --noconfirm PaintedDesktop.spec
 
       - name: Build installer
-        shell: bash
+        shell: pwsh  # Git Bash would rewrite the /D switch as a path
         run: |
-          choco install innosetup -y --no-progress
-          version=$(python -c "import sys; sys.path.insert(0, 'PaintedDesktop'); from settings import APP_VERSION; print(APP_VERSION)")
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
+          $version = python -c "import sys; sys.path.insert(0, 'PaintedDesktop'); from settings import APP_VERSION; print(APP_VERSION)"
           iscc "/DMyAppVersion=$version" installer/setup.iss
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
       - uses: actions/upload-artifact@v4
         with:
