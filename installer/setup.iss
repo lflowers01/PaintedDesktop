@@ -1,9 +1,9 @@
 ; Inno Setup script for PaintedDesktop
-; Build: iscc /DMyAppVersion=2.0.0 installer\setup.iss  (after pyinstaller PaintedDesktop.spec)
+; Build: iscc /DMyAppVersion=2.0.1 installer\setup.iss  (after pyinstaller PaintedDesktop.spec)
 
 #define MyAppName "PaintedDesktop"
 #ifndef MyAppVersion
-  #define MyAppVersion "2.0.0"
+  #define MyAppVersion "2.0.1"
 #endif
 #define MyAppPublisher "Lucas Flowers"
 #define MyAppURL "https://github.com/lflowers01/PaintedDesktop"

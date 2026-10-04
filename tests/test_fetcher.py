@@ -57,6 +57,7 @@ def test_artic_search_parses_and_skips_small_images():
     assert paintings[0]["artist"] == "Claude Monet (French, 1840-1926)"
     query = fetcher.session.post.call_args.kwargs["json"]["query"]["bool"]
     assert {"match_phrase": {"subject_titles": "landscapes"}} in query["should"]
+    assert {"match_phrase": {"subject_titles": "religion"}} in query["must_not"]
 
 
 def test_search_errors_end_iteration_instead_of_raising():

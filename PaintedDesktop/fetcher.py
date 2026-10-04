@@ -136,6 +136,9 @@ class ARTICFetcher(Fetcher):
         "seascape": ["seascapes", "coastal scenes", "marine art"],
         "veduta": ["cityscapes"],
     }
+    # Religious and mythological scenes and portraits are often also tagged "landscapes"
+    EXCLUDED_SUBJECTS = ["religion", "Christianity", "saints", "Virgin Mary", "Jesus", "Bible",
+                         "portraits", "mythology", "mythological figures"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -150,6 +153,7 @@ class ARTICFetcher(Fetcher):
             ],
             "should": [{"match_phrase": {"subject_titles": s}} for s in self.SUBJECTS.get(style, [style])],
             "minimum_should_match": 1,
+            "must_not": [{"match_phrase": {"subject_titles": s}} for s in self.EXCLUDED_SUBJECTS],
         }}
         payload = {"query": query, "limit": 100, "page": page,
                    "fields": ["id", "title", "image_id", "artist_display", "date_display", "thumbnail"]}

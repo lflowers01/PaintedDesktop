@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple
 
 from history import write_json_atomic
 
-APP_VERSION = "2.0.0"
+APP_VERSION = "2.0.1"
 STYLES = {"landscape": "Landscapes", "seascape": "Seascapes", "veduta": "Cityscapes (veduta)"}
 
 
