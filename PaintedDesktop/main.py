@@ -21,7 +21,7 @@ from fetcher import ARTICFetcher, RijksmuseumFetcher, WikimediaFetcher
 from history import HistoryManager
 from settings import APP_VERSION, SettingsManager
 from ui import UI, HistoryWindow, InfoWindow, SettingsWindow
-from wallpaper import enable_dpi_awareness, get_monitor_resolution, register_startup, set_wallpaper
+from wallpaper import enable_dpi_awareness, get_monitor_resolution, register_startup, set_lock_screen, set_wallpaper
 
 SOURCES = (ARTICFetcher, RijksmuseumFetcher, WikimediaFetcher)  # priority order
 ATTEMPTS_PER_SOURCE = 6
@@ -114,6 +114,8 @@ class PaintedDesktop:
             for painting in itertools.islice(fresh, ATTEMPTS_PER_SOURCE):
                 path = fetcher.fetch_image(painting, self.cache_dir)
                 if path and set_wallpaper(path, mode):
+                    if self.settings.get("set_lock_screen", True):
+                        set_lock_screen(path)
                     self.history.add_entry(
                         title=painting["title"], artist=painting["artist"], year=painting["year"],
                         source_institution=painting["institution"], source_url=painting["source_url"],

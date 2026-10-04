@@ -5,7 +5,7 @@ a = Analysis(
     ['PaintedDesktop/main.py'],
     pathex=['PaintedDesktop'],
     datas=[('PaintedDesktop/assets', 'assets')],
-    hiddenimports=['pystray._win32'],  # pystray picks its backend at runtime
+    hiddenimports=['pystray._win32', 'winrt.windows.foundation'],  # pystray picks its backend at runtime
     excludes=['pytest'],
     noarchive=False,
 )

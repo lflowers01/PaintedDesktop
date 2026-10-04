@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple
 
 from history import write_json_atomic
 
-APP_VERSION = "2.0.1"
+APP_VERSION = "2.1.0"
 STYLES = {"landscape": "Landscapes", "seascape": "Seascapes", "veduta": "Cityscapes (veduta)"}
 
 
@@ -19,6 +19,7 @@ class SettingsManager:
         "art_styles": ["landscape", "seascape"],
         "display_mode": "fit",  # "fit" = whole painting with black bars, "fill" = crop to cover
         "launch_at_startup": True,
+        "set_lock_screen": True,
     }
 
     def __init__(self, data_dir: str):

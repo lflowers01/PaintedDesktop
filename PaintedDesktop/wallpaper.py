@@ -60,6 +60,25 @@ def set_wallpaper(image_path: str, mode: str = "fill") -> bool:
         return False
 
 
+def set_lock_screen(image_path: str) -> bool:
+    """Set the lock screen image via WinRT (per-user, no admin needed)."""
+    try:
+        import asyncio
+        from winrt.windows.storage import StorageFile
+        from winrt.windows.system.userprofile import LockScreen
+
+        async def apply():
+            file = await StorageFile.get_file_from_path_async(os.path.abspath(image_path))
+            await LockScreen.set_image_file_async(file)
+
+        asyncio.run(apply())
+        logger.info(f"Lock screen set: {image_path}")
+        return True
+    except Exception as e:
+        logger.warning(f"Failed to set lock screen: {e}")
+        return False
+
+
 def get_monitor_resolution() -> tuple:
     """Primary monitor resolution in physical pixels."""
     try:

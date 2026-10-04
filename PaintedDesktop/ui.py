@@ -272,6 +272,13 @@ class SettingsWindow(tk.Toplevel):
                         variable=self.startup).grid(row=row, column=1, sticky="w", pady=(0, 14))
         row += 1
 
+        # Lock screen
+        section("Lock screen")
+        self.lock_screen = tk.BooleanVar(value=bool(settings.get("set_lock_screen", True)))
+        ttk.Checkbutton(frame, text="Use the painting as my lock screen too",
+                        variable=self.lock_screen).grid(row=row, column=1, sticky="w", pady=(0, 14))
+        row += 1
+
         self.error = ttk.Label(frame, text="", foreground="#c42b1c")
         self.error.grid(row=row, column=0, columnspan=2, sticky="w")
         row += 1
@@ -316,6 +323,7 @@ class SettingsWindow(tk.Toplevel):
         self.settings.set("display_mode", self.mode.get())
         self.settings.set_min_resolution(*(size or (None, None)))
         self.settings.set("launch_at_startup", self.startup.get())
+        self.settings.set("set_lock_screen", self.lock_screen.get())
         self.destroy()
         if self.on_save:
             self.on_save()

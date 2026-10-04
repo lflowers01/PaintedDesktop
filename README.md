@@ -46,6 +46,7 @@ Installing a new version over an old one keeps your settings and history.
 | Display | Fit | **Fit** shows the whole painting with black bars; **Fill** covers the screen and crops the edges |
 | Image size | Match my screen | Minimum image size; set a custom size for multi-monitor setups |
 | Launch at startup | On | Start PaintedDesktop when you sign in to Windows |
+| Lock screen | On | Use the same painting as your Windows lock screen |
 
 ## Art Sources
 
